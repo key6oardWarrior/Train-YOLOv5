@@ -1,8 +1,8 @@
-from os import getcwd, mkdir, listdir
+from ast import arg
+from os import getcwd
 from os.path import join
-from sys import argv
-from shutil import copy2
 from genericpath import isdir
+from sys import argv
 
 '''
 argv[1] = percentage of images used for training between 0.0 - 1.0
@@ -10,11 +10,16 @@ argv[2] = images path
 argv[3] = labels path
 '''
 
+class DirNotFoundError(Exception):
+	pass
+
 path = getcwd()
 
 def createDirs() -> None:
+	from os import mkdir
+
 	global path
-	path += "\\train_val_split"
+	path = join(path, "train_val_split")
 	cnt = 1
 
 	while isdir(path):
@@ -36,6 +41,9 @@ def createDirs() -> None:
 	mkdir(join(labelsPath, "val"))
 
 def trainValSplit() -> None:
+	from os import listdir
+	from shutil import copy2
+
 	trainingSize: float
 
 	if argv[1].replace(".", "").isnumeric():
@@ -49,6 +57,9 @@ def trainValSplit() -> None:
 	images: list = listdir(argv[2])
 	trainingSize: int = round(len(images) * trainingSize)
 
+	if (isdir(argv[2]) == False):
+		raise DirNotFoundError(f"The directory {argv[2]} does not exists")
+
 	cnt = 0
 	for file in images:
 		if cnt < trainingSize:
@@ -57,6 +68,9 @@ def trainValSplit() -> None:
 			copy2(join(argv[2], file), join(path, join("images", "val")))
 
 		cnt += 1
+
+	if (isdir(argv[3]) == False):
+		raise DirNotFoundError(f"The directory {argv[3]} does not exists")
 
 	cnt = 0
 	for file in listdir(argv[3]):
